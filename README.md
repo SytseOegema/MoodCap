@@ -26,11 +26,13 @@ requests to the backend for storage.
 The following requirements must be met in order to upload code to your eps32.
 1. Install [Arduino IDE](https://www.arduino.cc/en/software)
 2. Add an additional board manager via __file > preferences__
+
 ![arduino ide open preferences](documentation/resources/arduino-ide-open-preferences.png)
 
 Then add _https://dl.espressif.com/dl/package_esp32_index.json_.
 
 ![arduino add additional board manager](documentation/resources/arduino-ide-preferences.png)
+
 3. Therafter install the esp32 board manager via __tools > board >__
 __boards manager__
 
