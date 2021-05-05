@@ -1,6 +1,0 @@
-wsl hostname -I
-
-netsh interface portproxy delete v4tov4 listenaddress=192.168.178.11 listenport=5000
-netsh interface portproxy add v4tov4 listenaddress=192.168.178.11 listenport=5000 connectaddress=172.25.124.38 connectport=5000
-
-netsh interface portproxy show v4tov4
