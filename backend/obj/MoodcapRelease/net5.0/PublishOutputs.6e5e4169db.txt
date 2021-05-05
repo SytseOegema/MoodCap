@@ -1,0 +1,11 @@
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/moodCap
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/appsettings.Development.json
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/appsettings.json
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/moodCap.dll
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/moodCap.deps.json
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/moodCap.runtimeconfig.json
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/moodCap.pdb
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/Microsoft.OpenApi.dll
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/Swashbuckle.AspNetCore.Swagger.dll
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/Swashbuckle.AspNetCore.SwaggerGen.dll
+/mnt/c/code/moodCap/backend/bin/MoodcapRelease/net5.0/publish/Swashbuckle.AspNetCore.SwaggerUI.dll
