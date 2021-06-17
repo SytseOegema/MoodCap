@@ -62,7 +62,7 @@ namespace MoodCap
                     return;
                 }
 
-                if(! await StoreImage(cameraImage, cameraName)) {
+                if(! await StoreImage(cameraImage, cameraName + idx)) {
                     // internal server error
                     response.StatusCode = (int) HttpStatusCode.InternalServerError;
                     await response.WriteAsync("Something went wrong while storing the file");
@@ -115,9 +115,9 @@ namespace MoodCap
                 var extension = "." + image.FileName
                     .Split('.')[image.FileName.Split('.').Length - 1];
                 // Create a new Name for the file to keep track of them.
-                fileName = cameraName
+                fileName = DateTime.Now.Ticks
                     + '-'
-                    + DateTime.Now.Ticks
+                    + cameraName
                     + extension;
 
                 using (var stream = image.OpenReadStream())
