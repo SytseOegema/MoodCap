@@ -9,9 +9,6 @@
 #include "soc/rtc_cntl_reg.h"
 #include "esp_camera.h"
 
-// const char* ssid = "iPhone van Sytse";
-// const char* password = "hoihoihoi";
-
 const char* ssid = "Ziggo4394718";
 const char* password = "rgg7hqptQss3";
 
@@ -43,7 +40,7 @@ WiFiClient client;
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-const int timerInterval = 30000;    // time between each HTTP POST image
+const int timerInterval = 10000;    // time between each HTTP POST image
 unsigned long previousMillis = 0;   // last time image was sent
 
 void setup() {
@@ -88,15 +85,16 @@ void setup() {
 
   // init with high specs to pre-allocate larger buffers
   if(psramFound()){
-    config.frame_size = FRAMESIZE_SVGA;
+    config.frame_size = FRAMESIZE_UXGA;
     // config.jpeg_quality = 10;  //0-63 lower number means higher quality
-    config.jpeg_quality = 2;  //0-63 lower number means higher quality
+    config.jpeg_quality = 6;  //0-63 lower number means higher quality
     config.fb_count = 2;
+    Serial.printf("RAM found!\n");
   } else {
     config.frame_size = FRAMESIZE_CIF;
-    // config.jpeg_quality = 12;  //0-63 lower number means higher quality
-    config.jpeg_quality = 2;  //0-63 lower number means higher quality
+    config.jpeg_quality = 10;  //0-63 lower number means higher quality
     config.fb_count = 1;
+    Serial.printf("RAM NOT found!\n");
   }
 
   // camera init
@@ -114,6 +112,7 @@ void loop() {
   unsigned long currentMillis = millis();
   if (currentMillis - previousMillis >= timerInterval) {
     sendPhoto();
+    Serial.printf("Time for execution: %lu\n", millis() - currentMillis);
     previousMillis = currentMillis;
   }
 }
