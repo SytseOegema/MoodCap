@@ -23,17 +23,17 @@
 #define HREF_GPIO_NUM 23
 #define PCLK_GPIO_NUM 22
 
-#define NUM_IMAGES 2
+#define NUM_IMAGES 1
 
 typedef struct {
   size_t buf_len;
   uint8_t *buf;
 } JPEG;
 
-JPEG images[NUM_IMAGES];
+JPEG *images[NUM_IMAGES];
 
-const char *ssid = "YourWiFiNetwork";
-const char *password = "YourWiFiPassword";
+const char* ssid = "Ziggo4394718";
+const char* password = "rgg7hqptQss3";
 
 String boundary = "----moodcap-esp32-cam1";
 String serverName = "us-central1-driven-era-310811.cloudfunctions.net";
@@ -89,6 +89,7 @@ void setup() {
 
   // init with high specs to pre-allocate larger buffers
   if (psramFound()) {
+    Serial.printf("RAM found!\n");
     config.frame_size = FRAMESIZE_SVGA;
     config.jpeg_quality = 2; //0-63 lower number means higher quality
     config.fb_count = 2;
@@ -120,10 +121,11 @@ void loop() {
 
     sendImages();
     previousMillis = currentMillis;
+    freeImages();
   }
 }
 
-JPEG captureImage() {
+JPEG *captureImage() {
   camera_fb_t *fb = NULL;
   fb = esp_camera_fb_get();
 
@@ -133,7 +135,14 @@ JPEG captureImage() {
     ESP.restart();
   }
 
-  JPEG image = { fb->len, fb->buf };
+  JPEG *image = (JPEG*) malloc(sizeof(JPEG) + sizeof(uint8_t) * fb->len);
+  if (image == NULL) {
+    Serial.println("Memory error: malloc of image failed");
+    ESP.restart();
+  }
+  image->buf_len = fb->len;
+  memcpy(image->buf, fb->buf, sizeof(uint8_t)*image->buf_len);
+
   esp_camera_fb_return(fb);
 
   return image;
@@ -162,7 +171,7 @@ String sendImages() {
     uint32_t imageLen = 0;
 
     for (size_t i = 0; i < NUM_IMAGES; i++) {
-      imageLen += images[i].buf_len;
+      imageLen += images[i]->buf_len;
     }
 
     uint32_t totalLen = imageLen + extraLen;
@@ -180,8 +189,9 @@ String sendImages() {
     client.print(formCameraName);
 
     for (size_t i = 0; i < NUM_IMAGES; i++) {
-      uint8_t *fbBuf = images[i].buf;
-      size_t fbLen = images[i].buf_len;
+      client.print(generateRequestFormImageHeader(i));
+      uint8_t *fbBuf = images[i]->buf;
+      size_t fbLen = images[i]->buf_len;
       for (size_t n = 0; n < fbLen; n = n + 1024) {
         if (n + 1024 < fbLen) {
           client.write(fbBuf, 1024);
@@ -198,7 +208,7 @@ String sendImages() {
      * End of sending the request
      */
 
-    int timoutTimer = 5000;
+    int timoutTimer = 10000;
     long startTimer = millis();
     boolean state = false;
 
@@ -253,4 +263,10 @@ String generateRequestFormImageHeader(int num) {
   requestHead += "Content-Type: image/jpeg\r\n\r\n";
 
   return requestHead;
+}
+
+void freeImages() {
+  for (size_t i = 0; i < NUM_IMAGES; i++) {
+    free(images[i]);
+  }
 }

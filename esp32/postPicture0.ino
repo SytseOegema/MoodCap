@@ -14,9 +14,9 @@ const char* password = "rgg7hqptQss3";
 
 
 String boundary = "----moodcap-esp32-cam1";
-
 String serverName = "us-central1-driven-era-310811.cloudfunctions.net";
 String serverPath = "/image-upload";
+String cameraName = "ESP32-mood-cap";
 const int serverPort = 80;
 
 WiFiClient client;
@@ -40,7 +40,7 @@ WiFiClient client;
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
-const int timerInterval = 10000;    // time between each HTTP POST image
+const int timerInterval = 30000;    // time between each HTTP POST image
 unsigned long previousMillis = 0;   // last time image was sent
 
 void setup() {
@@ -197,7 +197,7 @@ String generateRequestHeader() {
   // camera name header
   String cameraNameHeader = "--" + boundary + "\r\n";
   cameraNameHeader += "Content-Disposition: form-data; name=\"CameraName\"\r\n\r\n";
-  cameraNameHeader += "esp32-cam\r\n";
+  cameraNameHeader += cameraName + "\r\n";
 
   // request header
   String requestHead = "--" + boundary + "\r\n";

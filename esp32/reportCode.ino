@@ -17,7 +17,7 @@ const char * password = "YourWiFiPassword";
 String boundary = "----moodcap-esp32-cam1";
 String serverName = "us-central1-driven-era-310811.cloudfunctions.net";
 String serverPath = "/image-upload";
-String cameraName = "ESP32-mood-cap"
+String cameraName = "ESP32-mood-cap";
 const int serverPort = 80;
 
 WiFiClient client;
