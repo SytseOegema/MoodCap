@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Npgsql;
 
 namespace MoodCap
 {
@@ -15,7 +16,6 @@ namespace MoodCap
     {
         private readonly ILogger _logger;
         private StorageClient _storage;
-
         public PostImages(ILogger<PostImages> logger) {
             _logger = logger;
             _storage = StorageClient.Create();
@@ -36,6 +36,11 @@ namespace MoodCap
                 await response.WriteAsync("The request does not contain a CameraName");
                 return;
             }
+            if(!request.Form.ContainsKey("SessionToken")) {
+                response.StatusCode = (int) HttpStatusCode.BadRequest;
+                await response.WriteAsync("The request does not contain a SessionToken");
+                return;
+            }
             if(request.Form.Files.GetFile("Content0") == null) {
                 response.StatusCode = (int) HttpStatusCode.BadRequest;
                 await response.WriteAsync("The request does not contain an file named Content");
@@ -46,10 +51,16 @@ namespace MoodCap
             StringValues cameraNameValues = new StringValues();
             request.Form.TryGetValue("CameraName", out cameraNameValues);
             string cameraName = cameraNameValues.ToString();
+            // obtain SessionToken
+            StringValues sessionTokenValues = new StringValues();
+            request.Form.TryGetValue("SessionToken", out sessionTokenValues);
+            string sessionToken = sessionTokenValues.ToString();
 
-            // obtain files Content[x] with a max of 10 files.
-            for (var idx = 0; idx < 10; ++idx) {
-                // break if there are no more files.
+            var idx = 0;
+            long timestamp = DateTime.Now.Ticks;
+
+            // obtain files Content[idx]
+            do {
                 if(request.Form.Files.GetFile("Content" + idx) == null) {
                     break;
                 }
@@ -62,16 +73,58 @@ namespace MoodCap
                     return;
                 }
 
-                if(! await StoreImage(cameraImage, cameraName + idx)) {
+                string imageName = timestamp + cameraName + '-' + idx;
+
+                if(! await StoreImage(cameraImage, imageName)) {
                     // internal server error
                     response.StatusCode = (int) HttpStatusCode.InternalServerError;
                     await response.WriteAsync("Something went wrong while storing the file");
                     return;
                 }
+                idx++;
+            } while (true);
+
+
+            string sessionType = sessionToken.Split('-')[0];
+            string sessionKey = sessionToken.Split('-')[1];
+            // store metrics in database
+            await using var conn = new NpgsqlConnection(connectionStringBuilder());
+            await conn.OpenAsync();
+            string query = buildQuery();
+            await using (var cmd = new NpgsqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("sessionType", sessionType);
+                cmd.Parameters.AddWithValue("sessionKey", sessionKey);
+                cmd.Parameters.AddWithValue("timestamp", timestamp);
+                cmd.Parameters.AddWithValue("imageCount", idx);
+                await cmd.ExecuteNonQueryAsync();
             }
 
             response.StatusCode = 200;
             return;
+        }
+
+        private string connectionStringBuilder() {
+            string dbSocketDir = "/cloudsql";
+            string instanceConnectionName = "driven-era-310811:europe-west4:moodcap";
+            var connectionString = new NpgsqlConnectionStringBuilder()
+                {
+                    // The Cloud SQL proxy provides encryption between the proxy and instance.
+                    SslMode = SslMode.Disable,
+                    Host = String.Format("{0}/{1}", dbSocketDir, instanceConnectionName),
+                    Username = "postgres",
+                    Password = "moodcap",
+                    Database = "moodcap"
+                };
+            return connectionString.ConnectionString;
+        }
+
+        private string buildQuery() {
+            string query = "INSERT INTO sessionRequests "
+              + "(sessionType, sessionKey, requestArrivalTime, imageCount) "
+              + "VALUES "
+              + $"(@sessionType, @sessionKey, @timestamp, @imageCount)";
+            return query;
         }
 
         /**
@@ -107,7 +160,7 @@ namespace MoodCap
          * from.
          * @returns bool that indicates the success of the file storage.
          */
-        private async Task<bool> StoreImage(IFormFile image, string cameraName) {
+        private async Task<bool> StoreImage(IFormFile image, string imageName) {
             bool isSaveSuccess = false;
             string fileName;
             try
@@ -115,10 +168,7 @@ namespace MoodCap
                 var extension = "." + image.FileName
                     .Split('.')[image.FileName.Split('.').Length - 1];
                 // Create a new Name for the file to keep track of them.
-                fileName = DateTime.Now.Ticks
-                    + '-'
-                    + cameraName
-                    + extension;
+                fileName = imageName + extension;
 
                 using (var stream = image.OpenReadStream())
                 {
