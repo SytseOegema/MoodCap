@@ -15,27 +15,24 @@
 #define TIMER_INTERVAL 20000
 #define NUM_IMAGES 4
 
-// const char* ssid = "iPhone van Sytse";
-// const char* password = "hoihoihoi";
-
-const char* ssid = "Ziggo4394718";
-const char* password = "rgg7hqptQss3";
+const char* ssid = "YourWiFiSSID";
+const char* password = "YourWiFiPassword";
 
 String cameraName = "Mood Cap v1";
 String sessionToken = String(NUM_IMAGES) + "UXGA"
   + String(TIMER_INTERVAL / 1000) + "seconds"
-  + "-attempt1";
+  + "-session1";
 String boundary = "----MoodCap-esp32";
 
-framesize_t framesize = FRAMESIZE_UXGA; // setting for 2 images within 10 sec
+framesize_t framesize = FRAMESIZE_UXGA; // setting for 4 images within 20 sec
 // framesize_t framesize = FRAMESIZE_XGA; // setting for 10 images within 10 sec
 // framesize_t framesize = FRAMESIZE_SVGA; // setting for 20 images within 10 sec
 int jpegQuality = 2; // number between 0-63 (lower higher quality)
 int fbCount = 2;
 
-String serverName = "us-central1-driven-era-310811.cloudfunctions.net";
-String serverPath = "/images-upload";
-const int serverPort = 80;
+String serverName = "yourserver.name";
+String serverPath = "/yourServerPath";
+const int serverPort = 80; // 80 is the default HTTP port
 
 WiFiClient client;
 
@@ -58,6 +55,7 @@ WiFiClient client;
 #define HREF_GPIO_NUM     23
 #define PCLK_GPIO_NUM     22
 
+unsigned long previousMillis = 0; // last time image was sent
 unsigned long frameDelay = 0;   // last time image was sent
 QueueHandle_t queue;
 
@@ -75,7 +73,6 @@ String requetsFormSessionToken = "--" + boundary + "\r\n"
   + sessionToken + "\r\n";
 
 String requestFormTail = "--" + boundary + "--\r\n";
-
 
 /*
  * Helper functions
@@ -141,7 +138,6 @@ void startSendImagesTask() {
     NULL); /* Task handle to keep track of created task */
 }
 
-
 image *createImageBuffer(size_t bufferSize)
 {
   image *imagePntr = (image*) ps_malloc(sizeof(image));
@@ -186,7 +182,6 @@ image *captureImage()
 }
 
 String generateRequestFormImageHeader(int num) {
-  // request header
   String requestHead = "--" + boundary + "\r\n";
   requestHead += "Content-Disposition: form-data; name=\"Content";
   requestHead += String(num) + "\"; filename=\"image" + String(num) + ".jpeg\"\r\n";
@@ -313,7 +308,10 @@ void setup() {
 }
 
 void loop() {
-  delay(frameDelay);
-  image *currentImage = captureImage();
-  xQueueSend(queue, &currentImage, portMAX_DELAY);
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= frameDelay) {
+    image *currentImage = captureImage();
+    xQueueSend(queue, &currentImage, portMAX_DELAY);
+    previousMillis = currentMillis;
+  }
 }

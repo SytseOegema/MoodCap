@@ -13,25 +13,22 @@
 #include "esp_camera.h"
 #define TIMER_INTERVAL 10000
 
-// const char* ssid = "iPhone van Sytse";
-// const char* password = "hoihoihoi";
-
-const char *ssid = "Ziggo4394718";
-const char *password = "rgg7hqptQss3";
+const char* ssid = "YourWiFiSSID";
+const char* password = "YourWiFiPassword";
 
 String cameraName = "Mood Cap v1";
 String sessionToken = "sequentialUXGA"
   + String(TIMER_INTERVAL / 1000) + "seconds"
-  + "-attempt1";
+  + "-session1";
 String boundary = "----MoodCap-esp32";
 
 framesize_t framesize = FRAMESIZE_UXGA;
 int jpegQuality = 2; // number between 0-63 (lower higher quality)
 int fbCount = 2;
 
-String serverName = "us-central1-driven-era-310811.cloudfunctions.net";
-String serverPath = "/images-upload";
-const int serverPort = 80;
+String serverName = "yourserver.name";
+String serverPath = "/yourServerPath";
+const int serverPort = 80; // 80 is the default HTTP port
 
 WiFiClient client;
 
