@@ -15,6 +15,7 @@ requests.
 - `esp32`: Arduino code for the esp32 camera.
 - `functions`: The Google cloud functions that process the incoming HTTP
 requests.
+- 'images': a few facial images taken with the MoodCap prototype.
 
 ## ESP32
 The esp32 is a simple circuit board that can be programmed similarly to an
@@ -65,7 +66,7 @@ __Do not forget to create your own bucket in Google Cloud Storage. In the__
 __PostImage function a bucket named moodcap is used. You can either use the__
 __same name for your bucket or change the name there.__
 
- 
+
 ## backend
 __outdated - because the esp32 cannot resolve local IP addresses__
 This folder contains a .NET framework for a REST API. One of the endpoints is
